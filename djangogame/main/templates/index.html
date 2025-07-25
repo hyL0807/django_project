@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>제목</title>
+    <title>Welcome to the Ghost Website</title>
     <style>
         body {
             margin: 0;
             padding: 0;
             background-color: black;
-            color: white;
+            color: #c30d0d;
             font-family: Arial, sans-serif;
             height: 100vh;
             display: flex;
@@ -34,14 +34,16 @@
         }
         
         button:hover {
-            background-color: #f0f0f0;
+            background-color: #972e2e;
         }
     </style>
 </head>
 <body>
-    <h1>제목</h1>
+    <h1>The Ghost Website</h1>
+    <h2>괴담 사이트에 어서오세요</h2>
     <form action="{% url 'page1' %}">
-        <button type="submit">이동하기</button>
+        {% csrf_token %}
+        <button type="submit">Start</button>
     </form>
 </body>
 </html>

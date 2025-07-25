@@ -1,15 +1,13 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Warning!</title>
+    <title>텍스트 입력 예시</title>
     <style>
         body {
             margin: 0;
             padding: 0;
             background-color: black;
-            color: #f9f905;
+            color: white;
             font-family: Arial, sans-serif;
             height: 60vh;
             display: flex;
@@ -20,11 +18,15 @@
     </style>
 </head>
 <body>
-    <h1>Warning!</h1>
-    <h3>이 페이지를 넘어가면 더 이상 돌아올 수 없습니다</h3>
-        <form action="{% url 'page2' %}">
+    <h1>텍스트 입력 받기</h1>
+    <form method="post" action="{% url 'page2' %}">
         {% csrf_token %}
-        <button type="submit">확인</button>
+        <label for="text_input">텍스트 입력:</label>
+        <input type="text" id="text_input" name="text_data">
+        <button type="submit">제출</button>
     </form>
+    {% if text_data %}
+        <p>입력된 텍스트: {{ text_data }}</p>
+    {% endif %}
 </body>
 </html>
