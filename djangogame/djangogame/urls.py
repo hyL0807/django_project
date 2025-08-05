@@ -22,4 +22,8 @@ urlpatterns = [
     path('', main.views.index, name='index'),
     path('page1/', main.views.page1, name='page1'),
     path('page2/', main.views.page2, name='page2'),
+    
+    #채팅 테스트
+    path('page3/', main.views.page3, name='page3'),
+    path('process/', main.views.process_message, name='process_message')
 ]

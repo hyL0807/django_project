@@ -14,15 +14,17 @@
             height: 100vh;
             display: flex;
             flex-direction: column;
+            justify-content: flex-end;
         }
         
         #messages {
-            flex: 1;
+            height: 33.33vh;
             overflow-y: auto;
             padding: 20px;
             background-color: #222;
             border-radius: 10px;
             margin-bottom: 20px;
+            opacity: 0.7;
         }
         
         .message {
@@ -82,6 +84,69 @@
         const messageInput = document.getElementById('messageInput');
         const sendBtn = document.getElementById('sendBtn');
 
+        //배경 테마 변경
+        const themes = {
+            '밤': {
+                background: 'linear-gradient(135deg, #0c0c0c, #1a1a2e, #16213e)',
+                name: '밤하늘'
+            },
+            '바다': {
+                background: 'linear-gradient(135deg, #667eea, #764ba2)',
+                name: '바다'
+            },
+            '숲': {
+                background: 'linear-gradient(135deg, #134e5e, #71b280)',
+                name: '숲'
+            },
+            '불': {
+                background: 'linear-gradient(135deg, #ff6b6b, #ee5a24)',
+                name: '불꽃'
+            },
+            '우주': {
+                background: 'linear-gradient(135deg, #000428, #004e92)',
+                name: '우주'
+            },
+            '일몰': {
+                background: 'linear-gradient(135deg, #fc466b, #3f5efb)',
+                name: '일몰'
+            },
+            '눈': {
+                background: 'linear-gradient(135deg, #e3ffe7, #d9e7ff)',
+                name: '눈밭'
+            },
+            '사막': {
+                background: 'linear-gradient(135deg, #ffeaa1, #d4ac0d)',
+                name: '사막'
+            },
+            '무지개': {
+                background: 'linear-gradient(135deg, #ff6b6b, #4ecdc4, #45b7d1, #f9ca24, #f0932b, #eb4d4b, #6c5ce7)',
+                name: '무지개'
+            },
+            '원래': {
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                name: '기본'
+            }
+        };
+
+        function changeBackgroundByKeyword(text) {
+            const lowerText = text.toLowerCase();
+            
+            for (const [keyword, theme] of Object.entries(themes)) {
+                if (lowerText.includes(keyword) || lowerText.includes(keyword.toLowerCase())) {
+                    // 배경 변경
+                    document.body.style.background = theme.background;
+                    
+                    // 시스템 메시지
+                    setTimeout(() => {
+                        addSystemMessage(`🎨 배경이 "${theme.name}" 테마로 변경되었습니다!`);
+                    }, 300);
+                    
+                    return true;
+                }
+            }
+            return false;
+        }
+
         function addMessage(text, type) {
             const div = document.createElement('div');
             div.className = `message ${type}`;
@@ -97,6 +162,8 @@
             addMessage(text, 'user');
             messageInput.value = '';
 
+            //const backgroundChanged = changeBackgroundByKeyword(text); //응답하는 것에 대한 배경 변경
+
             try {
                 const response = await fetch('/process/', {
                     method: 'POST',
@@ -108,6 +175,8 @@
                 
                 if (data.success) {
                     addMessage(data.bot_response, 'bot');
+                    const backgroundChanged = changeBackgroundByKeyword(data.bot_response); //응답 받은 것에 대한 배경 변경
+
                 } else {
                     addMessage('오류: ' + data.error, 'bot');
                 }
@@ -122,6 +191,7 @@
                 sendMessage();
             }
         });
+
     </script>
 </body>
 </html>
