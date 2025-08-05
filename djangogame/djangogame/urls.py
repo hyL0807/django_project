@@ -16,6 +16,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 import main.views
+import main.services
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -25,5 +26,6 @@ urlpatterns = [
     
     #채팅 테스트
     path('page3/', main.views.page3, name='page3'),
-    path('process/', main.views.process_message, name='process_message')
+    # path('process/', main.views.process_message, name='process_message')
+    path('process/', main.services.process_message, name='process_message') # view.py 대신 services.py로
 ]
