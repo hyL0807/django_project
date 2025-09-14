@@ -1,2 +1,2 @@
 # django_project
-django study and game project
+django study and web project
