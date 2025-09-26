@@ -1,5 +1,6 @@
 from openai import OpenAI
 from djangogame import config
+
 client = OpenAI(
     api_key=config.OPENAI_API_KEY
 )
