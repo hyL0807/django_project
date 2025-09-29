@@ -1,9 +1,31 @@
 #Chatting Service
-import openai
 from django.conf import settings
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+
+from google import genai
+from google.genai import types
+
+from django.conf import settings
+
 import json
+
+# Google 생성형 AI API
+API_KEY = settings.GEMINI_API_KEY
+def google_ai(ans):
+    client = genai.Client(
+        api_key = API_KEY
+    )
+    response = client.models.generate_content(
+        model="gemini-2.5-flash",
+        contents=ans,
+        config=types.GenerateContentConfig(
+            thinking_config=types.ThinkingConfig(thinking_budget=0) # Disables thinking
+        ),
+    )
+
+    # print(response.text)
+    return response.text
 
 # 채팅 서비스 구현
 @csrf_exempt
@@ -55,7 +77,8 @@ def generate_response(user_input):
     
     # 질문 형태 감지
     if '?' in user_input or '뭐' in user_input or '어떻게' in user_input:
-        return f'"{user_input}"에 대한 질문이시군요! 더 구체적으로 말씀해 주시면 더 정확한 답변을 드릴 수 있어요.'
+        return google_ai(user_input)
+        # return f'"{user_input}"에 대한 질문이시군요! 더 구체적으로 말씀해 주시면 더 정확한 답변을 드릴 수 있어요.'
     
     # 기본 응답
     return f'"{user_input}"라고 말씀하셨군요. 흥미로운 이야기네요! 더 자세히 이야기해 주세요.'
