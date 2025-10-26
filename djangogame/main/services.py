@@ -12,10 +12,21 @@ import json
 
 # Google 생성형 AI API
 API_KEY = settings.GEMINI_API_KEY
-def google_ai(ans):
+try:
     client = genai.Client(
         api_key = API_KEY
     )
+except Exception as e:
+    print(f"Gemini Client 오류: {e}")
+    client = None 
+
+def get_gemini_client():
+    if not client:
+        raise EnvironmentError("Gemini API Client 오류가 발생했습니다. API 키를 확인하세요.")
+    return client
+
+def google_ai(ans):
+    client = get_gemini_client()
     response = client.models.generate_content(
         model="gemini-2.5-flash",
         contents=ans,
@@ -23,7 +34,6 @@ def google_ai(ans):
             thinking_config=types.ThinkingConfig(thinking_budget=0) # Disables thinking
         ),
     )
-
     # print(response.text)
     return response.text
 
@@ -77,7 +87,7 @@ def generate_response(user_input):
     
     # 질문 형태 감지
     if '?' in user_input or '뭐' in user_input or '어떻게' in user_input:
-        return google_ai(user_input)
+        return google_ai(user_input) # 구글 AI api 대답 리턴
         # return f'"{user_input}"에 대한 질문이시군요! 더 구체적으로 말씀해 주시면 더 정확한 답변을 드릴 수 있어요.'
     
     # 기본 응답

@@ -27,5 +27,13 @@ urlpatterns = [
     #채팅 테스트
     path('page3/', main.views.page3, name='page3'),
     # path('process/', main.views.process_message, name='process_message')
-    path('process/', main.services.process_message, name='process_message') # view.py 대신 services.py로
+    path('process/', main.services.process_message, name='process_message'), # view.py 대신 services.py로
+    # 구글 api 멀티턴 챗 테스트
+    path('chat/', main.views.chat_page, name='chat_page'),
+    
+    # API 엔드포인트
+    path('api/chat/message/', main.views.chat_message, name='chat_message'),
+    path('api/chat/history/', main.views.get_chat_history, name='chat_history'),
+    path('api/chat/clear/', main.views.clear_chat, name='clear_chat'),
+    
 ]

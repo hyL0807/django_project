@@ -23,62 +23,90 @@ def page2(request):
 def page3(request):
     return render(request, 'page3.html')
 
-# 하단 코드를 services.py로 따로 뺐음
-# services.process_message(request)
-# services.generate_response(user_input)
 
+# 구글 api 멀티턴 챗 테스트
+# views.py
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+import json
+from .AI_services import gemini_chat
 
-# @csrf_exempt
-# def process_message(request):
-#     """사용자 입력을 처리하고 응답 반환"""
-#     if request.method == 'POST':
-#         try:
-#             data = json.loads(request.body)
-#             user_input = data.get('message', '').strip()
-            
-#             if not user_input:
-#                 return JsonResponse({'error': '메시지를 입력해주세요.'})
-            
-#             # 입력값에 따른 응답 생성
-#             response = generate_response(user_input)
-            
-#             return JsonResponse({
-#                 'success': True,
-#                 'user_message': user_input,
-#                 'bot_response': response
-#             })
-            
-#         except json.JSONDecodeError:
-#             return JsonResponse({'error': '잘못된 요청 형식입니다.'})
-#         except Exception as e:
-#             return JsonResponse({'error': f'오류가 발생했습니다: {str(e)}'})
-    
-#     return JsonResponse({'error': 'POST 요청만 허용됩니다.'})
+ai_text_path = '/static/text/test_text.txt'
 
-# def generate_response(user_input):
-#     """사용자 입력에 따른 응답 생성 로직"""
-#     user_input = user_input.lower()
+def chat_page(request):
+    """채팅 페이지 렌더링"""
+    return render(request, 'chat_test.html')
+
+@csrf_exempt
+def chat_message(request):
+    """채팅 메시지 처리"""
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            session_id = data.get('session_id')
+            message = data.get('message')
+            system_instruction = data.get('system_instruction')
+            use_context_file = data.get('use_context_file', False)  # 컨텍스트 파일 사용 여부
+            
+            if not session_id or not message:
+                return JsonResponse({
+                    'error': 'session_id와 message가 필요합니다.'
+                }, status=400)
+                
+            # 서버의 미리 준비된 파일에서 컨텍스트 로드
+            long_context = None
+            if use_context_file:
+                context_file_path = ai_text_path # 준비된 파일 path
+                long_context = gemini_chat.load_context_from_file(context_file_path)
+            
+            response = gemini_chat.send_message(
+                session_id=session_id,
+                message=message,
+                system_instruction=system_instruction,
+                long_context=long_context
+            )
+            
+            return JsonResponse({
+                'success': True,
+                'session_id': session_id,
+                'response': response
+            })
+        
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
     
-#     # 간단한 키워드 기반 응답 시스템
-#     responses = {
-#         '안녕': '안녕하세요! 무엇을 도와드릴까요?',
-#         'hello': 'Hello! How can I help you?',
-#         '날씨': '오늘 날씨가 궁금하시군요! 기상청 사이트를 확인해보시는 것을 추천드려요.',
-#         '시간': '현재 시간을 알고 싶으시군요. 브라우저에서 시간을 확인하실 수 있어요.',
-#         '도움': '무엇을 도와드릴까요? 궁금한 것이 있으면 언제든 물어보세요!',
-#         '감사': '천만에요! 도움이 되었다니 기쁘네요.',
-#         '바이': '안녕히 가세요! 좋은 하루 되세요.',
-#     }
+    return JsonResponse({'error': 'POST 요청만 가능합니다.'}, status=405)
+
+@csrf_exempt
+def get_chat_history(request):
+    """채팅 히스토리 조회"""
+    session_id = request.GET.get('session_id')
     
-#     # 키워드 매칭
-#     for keyword, response in responses.items():
-#         if keyword in user_input:
-#             return response
+    if not session_id:
+        return JsonResponse({'error': 'session_id가 필요합니다.'}, status=400)
     
-#     # 질문 형태 감지
-#     if '?' in user_input or '뭐' in user_input or '어떻게' in user_input:
-#         return f'"{user_input}"에 대한 질문이시군요! 더 구체적으로 말씀해 주시면 더 정확한 답변을 드릴 수 있어요.'
+    history = gemini_chat.get_history(session_id)
     
-#     # 기본 응답
-#     return f'"{user_input}"라고 말씀하셨군요. 흥미로운 이야기네요! 더 자세히 이야기해 주세요.'
+    return JsonResponse({
+        'session_id': session_id,
+        'history': history
+    })
+
+@csrf_exempt
+def clear_chat(request):
+    """채팅 초기화"""
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        session_id = data.get('session_id')
+        
+        if not session_id:
+            return JsonResponse({'error': 'session_id가 필요합니다.'}, status=400)
+        
+        success = gemini_chat.clear_session(session_id)
+        
+        return JsonResponse({
+            'success': success,
+            'message': '채팅이 초기화되었습니다.' if success else '세션을 찾을 수 없습니다.'
+        })
     
+    return JsonResponse({'error': 'POST 요청만 가능합니다.'}, status=405)

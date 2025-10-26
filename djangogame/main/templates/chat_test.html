@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Gemini Chat</title>
+    <style>
+        #chat-box {
+            height: 400px;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-bottom: 10px;
+            background: #fff;
+        }
+        .message {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 8px;
+            max-width: 80%;
+        }
+        .user-message {
+            background-color: #007bff;
+            color: white;
+            margin-left: auto;
+            text-align: right;
+        }
+        .model-message {
+            background-color: #f1f1f1;
+            color: black;
+        }
+        #input-container {
+            display: flex;
+            gap: 10px;
+        }
+        #message-input {
+            flex: 1;
+            padding: 10px;
+            font-size: 14px;
+        }
+        button {
+            padding: 10px 20px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Gemini 멀티턴 챗</h1>
+    <div id="chat-box"></div>
+    <div id="input-container">
+        <input type="text" id="message-input" placeholder="메시지를 입력하세요...">
+        <button onclick="sendMessage()">전송</button>
+        <button onclick="clearChat()">초기화</button>
+    </div>
+
+    <script>
+        // 세션 ID 생성 (브라우저 새로고침 시 초기화됨)
+        const sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+
+        async function sendMessage() {
+            const input = document.getElementById('message-input');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            addMessageToChat('user', message);
+            input.value = '';
+            
+            try {
+                const response = await fetch('/api/chat/message/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        session_id: sessionId,
+                        message: message
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    addMessageToChat('model', data.response);
+                } else {
+                    alert('오류: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('메시지 전송 중 오류가 발생했습니다.');
+            }
+        }
+
+        function addMessageToChat(role, content) {
+            const chatBox = document.getElementById('chat-box');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${role}-message`;
+            messageDiv.textContent = content;
+            chatBox.appendChild(messageDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        async function clearChat() {
+            if (!confirm('대화를 초기화하시겠습니까?')) return;
+            
+            try {
+                const response = await fetch('/api/chat/clear/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        session_id: sessionId
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('chat-box').innerHTML = '';
+                    alert('대화가 초기화되었습니다.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        // Enter 키로 전송
+        document.getElementById('message-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>
